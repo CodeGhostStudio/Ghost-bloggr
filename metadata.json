@@ -1,0 +1,6 @@
+{
+  "name": "Ghost Bloggr",
+  "description": "Minimalist browser-based AI blog writing studio with rich text editing, BYOK AI engine, local library, and HTML/PDF export.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
