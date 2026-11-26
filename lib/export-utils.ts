@@ -394,7 +394,7 @@ export function buildMarkdownBlogPost(params: {
       `title: "${escapedYamlTitle}"`,
       `slug: "${slug}"`,
       `date: "${isoDate}"`,
-      params.tone ? `tone: "${params.tone}"` : null,
+      params.tone ? `tone: "${params.tone.replaceAll('"', '\\"')}"` : null,
       `reading_time: "${metrics.readingTimeMinutes} min read"`,
       `word_count: ${metrics.words}`,
       '---',
@@ -419,8 +419,12 @@ export async function copyPostAsMarkdown(params: {
 }): Promise<string> {
   const markdown = buildMarkdownBlogPost(params);
   if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
-    await navigator.clipboard.writeText(markdown);
-    return markdown;
+    try {
+      await navigator.clipboard.writeText(markdown);
+      return markdown;
+    } catch {
+      // Fall through to textarea fallback when Clipboard API is blocked
+    }
   }
   const textarea = document.createElement('textarea');
   textarea.value = markdown;

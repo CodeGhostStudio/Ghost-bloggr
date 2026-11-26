@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useRef, useState, useSyncExternalStore } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import {
   ArrowRight,
@@ -8,8 +9,10 @@ import {
   Check,
   Copy,
   Download,
+  ExternalLink,
   FileCode2,
   FileDown,
+  Github,
   ImagePlus,
   ListTree,
   Moon,
@@ -33,8 +36,12 @@ import {
 
 const emptySubscribe = () => () => {};
 
-const REPO_URL = 'https://github.com/CodeGhostStudio/GhostBloggr.git';
+const REPO_PAGE_URL = 'https://github.com/CodeGhostStudio/Ghost-bloggr';
+const REPO_URL = 'https://github.com/CodeGhostStudio/Ghost-bloggr.git';
 const REPO_CLONE_CMD = `git clone ${REPO_URL}`;
+const REPO_GH_CLI_CMD = 'gh repo clone CodeGhostStudio/Ghost-bloggr';
+const HOTLINK_BANNER_URL = 'https://cloud.ghostwriterz.shop/f/d5fd0f5b870d495e/1795710743696.jpg';
+const LOCAL_FALLBACK_BANNER_URL = '/assets/aistudio/1795710743696_9774f42f.jpg';
 
 const CAPABILITIES: CapabilityItem[] = [
   {
@@ -136,13 +143,16 @@ export default function LandingPage() {
   );
   const { isInstallable, isInstalled, isIOS, install } = usePWAInstall();
   const [installModalOpen, setInstallModalOpen] = useState(false);
+  const [cloneMode, setCloneMode] = useState<'git' | 'gh'>('git');
   const [copiedClone, setCopiedClone] = useState(false);
+  const [bannerSrc, setBannerSrc] = useState(HOTLINK_BANNER_URL);
   const [themeOverride, setThemeOverride] = useState<ThemeMode | null>(null);
   const shouldReduceMotion = useReducedMotion();
 
   const heroShowcaseRef = useRef<HTMLDivElement>(null);
   const workflowSectionRef = useRef<HTMLElement>(null);
   const stickyAgentsRef = useRef<HTMLElement>(null);
+  const bannerSectionRef = useRef<HTMLElement>(null);
   const installSectionRef = useRef<HTMLElement>(null);
 
   const { scrollYProgress: pageProgress } = useScroll();
@@ -158,6 +168,10 @@ export default function LandingPage() {
     target: stickyAgentsRef,
     offset: ['start end', 'end start'],
   });
+  const { scrollYProgress: bannerScrollProgress } = useScroll({
+    target: bannerSectionRef,
+    offset: ['start end', 'center center'],
+  });
   const { scrollYProgress: installScrollProgress } = useScroll({
     target: installSectionRef,
     offset: ['start end', 'end start'],
@@ -167,6 +181,7 @@ export default function LandingPage() {
   const cardOneY = useTransform(stickyScrollProgress, [0, 1], [14, -10]);
   const cardTwoY = useTransform(stickyScrollProgress, [0, 1], [22, -16]);
   const cardThreeY = useTransform(stickyScrollProgress, [0, 1], [30, -22]);
+  const bannerScale = useTransform(bannerScrollProgress, [0, 1], [0.96, 1]);
   const installBackLayerY = useTransform(installScrollProgress, [0, 1], [10, -10]);
 
   const theme: ThemeMode = themeOverride ?? (isClient ? loadPreferences().theme : 'dark');
@@ -194,10 +209,12 @@ export default function LandingPage() {
     setInstallModalOpen(true);
   };
 
+  const activeCloneCommand = cloneMode === 'git' ? REPO_CLONE_CMD : REPO_GH_CLI_CMD;
+
   const handleCopyClone = async () => {
     if (!navigator.clipboard) return;
     try {
-      await navigator.clipboard.writeText(REPO_CLONE_CMD);
+      await navigator.clipboard.writeText(activeCloneCommand);
       setCopiedClone(true);
       setTimeout(() => setCopiedClone(false), 1800);
     } catch {
@@ -238,11 +255,22 @@ export default function LandingPage() {
         </nav>
 
         <div className="flex items-center gap-2 shrink-0">
+          <a
+            href={REPO_PAGE_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Ghost Bloggr on GitHub"
+            title="View on GitHub"
+            className="min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 sm:size-8 rounded-full flex items-center justify-center bg-[var(--gb-surface)] border border-[var(--gb-border)] text-[var(--gb-muted)] hover:text-[var(--gb-text)] hover:bg-[var(--gb-hover)] transition-colors shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gb-accent)]"
+          >
+            <Github className="size-3.5" />
+          </a>
+
           <button
             type="button"
             onClick={handleToggleTheme}
             aria-label={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
-            className="size-8 rounded-full flex items-center justify-center bg-[var(--gb-surface)] border border-[var(--gb-border)] text-[var(--gb-muted)] hover:text-[var(--gb-text)] hover:bg-[var(--gb-hover)] transition-colors shrink-0"
+            className="min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 sm:size-8 rounded-full flex items-center justify-center bg-[var(--gb-surface)] border border-[var(--gb-border)] text-[var(--gb-muted)] hover:text-[var(--gb-text)] hover:bg-[var(--gb-hover)] transition-colors shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gb-accent)]"
           >
             {theme === 'dark' ? <Sun className="size-3.5" /> : <Moon className="size-3.5" />}
           </button>
@@ -297,21 +325,63 @@ export default function LandingPage() {
             </div>
 
             <div className="pt-1 flex justify-center">
-              <div className="max-w-full inline-flex items-center gap-2 pl-3 pr-1 py-1 rounded-full bg-[var(--gb-surface)] border border-[var(--gb-border)]">
-                <Terminal className="size-3 text-[var(--gb-muted)] shrink-0" />
+              <div className="max-w-full overflow-hidden inline-flex items-center gap-1.5 sm:gap-2 pl-1.5 pr-1 py-1 rounded-full bg-[var(--gb-surface)] border border-[var(--gb-border)]">
+                <div
+                  role="group"
+                  aria-label="Clone method"
+                  className="inline-flex items-center p-0.5 rounded-full bg-[var(--gb-elevated)] border border-[var(--gb-border)] shrink-0"
+                >
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCloneMode('git');
+                      setCopiedClone(false);
+                    }}
+                    aria-pressed={cloneMode === 'git'}
+                    className={`px-2 py-0.5 rounded-full text-[10px] font-medium transition-colors whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gb-accent)] ${
+                      cloneMode === 'git'
+                        ? 'bg-[var(--gb-accent)] text-[var(--gb-accent-fg)]'
+                        : 'text-[var(--gb-muted)] hover:text-[var(--gb-text)]'
+                    }`}
+                  >
+                    git
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCloneMode('gh');
+                      setCopiedClone(false);
+                    }}
+                    aria-pressed={cloneMode === 'gh'}
+                    className={`px-2 py-0.5 rounded-full text-[10px] font-medium transition-colors whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gb-accent)] ${
+                      cloneMode === 'gh'
+                        ? 'bg-[var(--gb-accent)] text-[var(--gb-accent-fg)]'
+                        : 'text-[var(--gb-muted)] hover:text-[var(--gb-text)]'
+                    }`}
+                  >
+                    gh CLI
+                  </button>
+                </div>
+
+                <Terminal className="hidden sm:block size-3 text-[var(--gb-muted)] shrink-0" />
+
                 <code className="font-mono text-[11px] text-[var(--gb-text)] flex items-center min-w-0">
-                  <span className="text-[var(--gb-muted)] mr-1.5 shrink-0">git clone</span>
+                  <span className="text-[var(--gb-muted)] mr-1.5 shrink-0">
+                    {cloneMode === 'git' ? 'git clone' : 'gh repo clone'}
+                  </span>
                   <TypewriterText
-                    text={REPO_URL}
-                    speedMs={72}
-                    startDelayMs={220}
+                    key={cloneMode}
+                    text={cloneMode === 'git' ? REPO_URL : 'CodeGhostStudio/Ghost-bloggr'}
+                    speedMs={cloneMode === 'git' ? 72 : 48}
+                    startDelayMs={cloneMode === 'git' ? 220 : 80}
                     className="min-w-0 text-[var(--gb-text)]"
                   />
                 </code>
+
                 <button
                   type="button"
                   onClick={handleCopyClone}
-                  aria-label="Copy git clone command"
+                  aria-label={cloneMode === 'git' ? 'Copy git clone command' : 'Copy GitHub CLI clone command'}
                   className="min-h-[28px] inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-medium bg-[var(--gb-elevated)] border border-[var(--gb-border)] text-[var(--gb-text)] hover:bg-[var(--gb-hover)] transition-colors whitespace-nowrap shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gb-accent)]"
                 >
                   {copiedClone ? (
@@ -678,6 +748,54 @@ export default function LandingPage() {
         </section>
 
         <section
+          id="open-source"
+          ref={bannerSectionRef}
+          className="w-full max-w-[1040px] mx-auto px-4 sm:px-6 pt-2 pb-8"
+        >
+          <motion.div style={{ scale: shouldReduceMotion ? 1 : bannerScale }}>
+            <a
+              href={REPO_PAGE_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Open CodeGhostStudio/Ghost-bloggr repository on GitHub"
+              className="group block rounded-2xl bg-[var(--gb-surface)] border border-[var(--gb-border)] overflow-hidden shadow-xl hover:border-[var(--gb-text)]/30 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gb-accent)]"
+            >
+              <div className="px-4 sm:px-5 py-2.5 border-b border-[var(--gb-border)] bg-[var(--gb-elevated)] flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <Github className="size-4 text-[var(--gb-text)] shrink-0" />
+                  <span className="font-mono text-xs font-medium text-[var(--gb-text)] truncate">
+                    CodeGhostStudio/Ghost-bloggr
+                  </span>
+                  <span className="hidden sm:inline text-[11px] text-[var(--gb-muted)]">
+                    Open-Source Repository
+                  </span>
+                </div>
+                <span className="inline-flex items-center gap-1.5 text-xs font-medium text-[var(--gb-text)] shrink-0">
+                  <span>View on GitHub</span>
+                  <ExternalLink className="size-3.5 text-[var(--gb-muted)] group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+                </span>
+              </div>
+
+              <div className="relative overflow-hidden bg-[#0a0a0a]">
+                <Image
+                  src={bannerSrc}
+                  alt="Ghost Bloggr open-source local-first AI blogging studio banner"
+                  width={1344}
+                  height={756}
+                  referrerPolicy="no-referrer"
+                  onError={() => {
+                    if (bannerSrc !== LOCAL_FALLBACK_BANNER_URL) {
+                      setBannerSrc(LOCAL_FALLBACK_BANNER_URL);
+                    }
+                  }}
+                  className="w-full h-auto block object-cover group-hover:scale-[1.015] transition-transform duration-500 ease-out"
+                />
+              </div>
+            </a>
+          </motion.div>
+        </section>
+
+        <section
           id="install-pwa"
           ref={installSectionRef}
           className="w-full max-w-[1040px] mx-auto px-4 sm:px-6 pt-4 pb-12"
@@ -744,7 +862,7 @@ export default function LandingPage() {
                     <button
                       type="button"
                       onClick={handleInstallPWA}
-                      className="min-h-[40px] inline-flex items-center justify-center gap-1.5 px-5 py-2 rounded-full text-xs sm:text-sm font-medium bg-[var(--gb-elevated)] border border-[var(--gb-border)] text-[var(--gb-text)] hover:bg-[var(--gb-hover)] transition-colors whitespace-nowrap shrink-0"
+                      className="min-h-[40px] inline-flex items-center justify-center gap-1.5 px-5 py-2 rounded-full text-xs sm:text-sm font-medium bg-[var(--gb-elevated)] border border-[var(--gb-border)] text-[var(--gb-text)] hover:bg-[var(--gb-hover)] transition-colors whitespace-nowrap shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gb-accent)]"
                     >
                       <Download className="size-3.5 text-[var(--gb-muted)]" />
                       <span>Install PWA Version</span>
@@ -763,7 +881,7 @@ export default function LandingPage() {
           <span>Drafts, agents, prompts, and BYOK keys remain in your browser.</span>
         </div>
 
-        <div className="flex items-center gap-4">
+        <div className="flex flex-wrap items-center gap-4">
           <Link href="/studio" className="hover:text-[var(--gb-text)] transition-colors">
             Open Studio
           </Link>
@@ -772,6 +890,15 @@ export default function LandingPage() {
           </a>
           <a href="#workflow" className="hover:text-[var(--gb-text)] transition-colors">
             Workflow
+          </a>
+          <a
+            href={REPO_PAGE_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 hover:text-[var(--gb-text)] transition-colors"
+          >
+            <Github className="size-3.5" />
+            <span>GitHub</span>
           </a>
           {!isInstalled && (
             <button

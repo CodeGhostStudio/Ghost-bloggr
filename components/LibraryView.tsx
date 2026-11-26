@@ -188,7 +188,7 @@ export default function LibraryView({
                     type="button"
                     aria-label={`Delete ${post.title}`}
                     onClick={() => onDeletePost(post.id)}
-                    className="size-8 rounded-full flex items-center justify-center text-[var(--gb-muted)] hover:text-red-400 hover:bg-[var(--gb-hover)] transition-colors"
+                    className="size-8 rounded-full flex items-center justify-center text-[var(--gb-muted)] hover:text-red-600 dark:hover:text-red-400 hover:bg-[var(--gb-hover)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gb-accent)]"
                   >
                     <Trash2 className="size-4" />
                   </button>

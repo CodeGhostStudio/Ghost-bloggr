@@ -186,9 +186,10 @@ export default function WriteCanvas({
 
   const handleImageFiles = async (files: FileList | null) => {
     if (!files || files.length === 0) return;
-    const imageFiles = Array.from(files).filter((f) => f.type.startsWith('image/'));
+    const allowed = new Set(['image/png', 'image/jpeg', 'image/jpg', 'image/webp', 'image/gif', 'image/avif']);
+    const imageFiles = Array.from(files).filter((f) => allowed.has(f.type.toLowerCase()));
     if (imageFiles.length === 0) {
-      onNotify('Drop a PNG, JPEG, WebP, or GIF image file.', 'error');
+      onNotify('Drop a PNG, JPEG, WebP, GIF, or AVIF image file.', 'error');
       return;
     }
     let inserted = 0;
@@ -628,7 +629,7 @@ export default function WriteCanvas({
                     aria-label="Undo"
                     onMouseDown={(e) => e.preventDefault()}
                     onClick={() => handleFormatAction(() => applyInlineCommand('undo'))}
-                    className="size-8 rounded-full flex items-center justify-center text-[var(--gb-muted)] hover:text-[var(--gb-text)] hover:bg-[var(--gb-hover)] transition-colors"
+                    className="size-8 rounded-full flex items-center justify-center text-[var(--gb-muted)] hover:text-[var(--gb-text)] hover:bg-[var(--gb-hover)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gb-accent)]"
                   >
                     <Undo2 className="size-4" />
                   </button>
@@ -638,10 +639,22 @@ export default function WriteCanvas({
                     aria-label="Redo"
                     onMouseDown={(e) => e.preventDefault()}
                     onClick={() => handleFormatAction(() => applyInlineCommand('redo'))}
-                    className="size-8 rounded-full flex items-center justify-center text-[var(--gb-muted)] hover:text-[var(--gb-text)] hover:bg-[var(--gb-hover)] transition-colors"
+                    className="size-8 rounded-full flex items-center justify-center text-[var(--gb-muted)] hover:text-[var(--gb-text)] hover:bg-[var(--gb-hover)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gb-accent)]"
                   >
                     <Redo2 className="size-4" />
                   </button>
+                  <span aria-hidden="true" className="h-4 w-px bg-[var(--gb-border)] mx-1" />
+                  <FloatingOutline
+                    title={title}
+                    headings={outlineHeadings}
+                    activeIndex={activeHeadingIndex}
+                    open={outlineOpen}
+                    variant="toolbar"
+                    onToggle={() => setOutlineOpen((p) => !p)}
+                    onClose={() => setOutlineOpen(false)}
+                    onJumpToTop={handleJumpToTop}
+                    onJumpToHeading={handleJumpToHeading}
+                  />
                 </div>
               </div>
             )}
@@ -815,7 +828,9 @@ export default function WriteCanvas({
           headings={outlineHeadings}
           activeIndex={activeHeadingIndex}
           open={outlineOpen}
+          variant="mobile"
           onToggle={() => setOutlineOpen((p) => !p)}
+          onClose={() => setOutlineOpen(false)}
           onJumpToTop={handleJumpToTop}
           onJumpToHeading={handleJumpToHeading}
         />

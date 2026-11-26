@@ -6,6 +6,9 @@ const ALLOWED_MODELS = new Set([
   'gemini-3.1-flash-lite',
 ]);
 
+const MAX_MESSAGES = 30;
+const MAX_TEXT_CHARS = 48_000;
+
 interface RequestMessage {
   role: 'user' | 'assistant' | 'system';
   content: string;
@@ -24,15 +27,41 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const body = await req.json();
-    const messages = Array.isArray(body?.messages) ? (body.messages as RequestMessage[]) : [];
+    let body: {
+      messages?: unknown;
+      systemInstruction?: unknown;
+      model?: unknown;
+    };
+    try {
+      body = (await req.json()) as {
+        messages?: unknown;
+        systemInstruction?: unknown;
+        model?: unknown;
+      };
+    } catch {
+      return NextResponse.json({ error: 'Invalid JSON request body.' }, { status: 400 });
+    }
+
+    const messages = Array.isArray(body?.messages)
+      ? (body.messages.slice(0, MAX_MESSAGES) as RequestMessage[])
+      : [];
     const systemInstruction =
-      typeof body?.systemInstruction === 'string' ? body.systemInstruction : undefined;
+      typeof body?.systemInstruction === 'string'
+        ? body.systemInstruction.slice(0, MAX_TEXT_CHARS)
+        : undefined;
     const requestedModel = typeof body?.model === 'string' ? body.model.trim() : '';
     const model = ALLOWED_MODELS.has(requestedModel) ? requestedModel : 'gemini-4-hydrogen';
 
     if (messages.length === 0) {
       return NextResponse.json({ error: 'Prompt messages are required.' }, { status: 400 });
+    }
+
+    const totalChars = messages.reduce(
+      (sum, m) => sum + (typeof m?.content === 'string' ? m.content.length : 0),
+      0
+    );
+    if (totalChars > MAX_TEXT_CHARS * 2) {
+      return NextResponse.json({ error: 'Prompt payload exceeds the maximum allowed size.' }, { status: 400 });
     }
 
     const ai = new GoogleGenAI({

@@ -2,10 +2,20 @@ import { escapeHtmlText } from './sanitize';
 
 const MAX_IMAGE_WIDTH = 1280;
 const MAX_IMAGE_BYTES = 8 * 1024 * 1024;
+const ALLOWED_RASTER_TYPES = new Set([
+  'image/png',
+  'image/jpeg',
+  'image/jpg',
+  'image/webp',
+  'image/gif',
+  'image/avif',
+]);
+const SAFE_IMAGE_SRC_RE =
+  /^(?:https:\/\/[^\s"'<>]+|data:image\/(?:png|jpeg|jpg|gif|webp|avif);base64,[A-Za-z0-9+/=]+)$/i;
 
 export async function processLocalImageFile(file: File): Promise<string> {
-  if (!file.type.startsWith('image/')) {
-    throw new Error('Please choose a valid image file (PNG, JPEG, WebP, or GIF).');
+  if (!ALLOWED_RASTER_TYPES.has(file.type.toLowerCase())) {
+    throw new Error('Please choose a PNG, JPEG, WebP, GIF, or AVIF image file.');
   }
   if (file.size > MAX_IMAGE_BYTES) {
     throw new Error('Image exceeds the 8 MB limit. Choose a smaller file.');
@@ -24,7 +34,7 @@ export async function processLocalImageFile(file: File): Promise<string> {
     reader.readAsDataURL(file);
   });
 
-  if (file.type === 'image/gif') {
+  if (file.type === 'image/gif' || file.type === 'image/avif') {
     return dataUrl;
   }
 
@@ -54,6 +64,11 @@ export async function processLocalImageFile(file: File): Promise<string> {
 }
 
 export function buildImageFigureHtml(dataUrl: string, altText: string): string {
+  const trimmedSrc = dataUrl.trim();
+  if (!SAFE_IMAGE_SRC_RE.test(trimmedSrc)) {
+    throw new Error('Unsupported or unsafe image format.');
+  }
+  const safeSrc = escapeHtmlText(trimmedSrc);
   const safeAlt = escapeHtmlText(altText.trim() || 'Article image');
-  return `<figure><img src="${dataUrl}" alt="${safeAlt}" /><figcaption>${safeAlt}</figcaption></figure><p><br></p>`;
+  return `<figure><img src="${safeSrc}" alt="${safeAlt}" /><figcaption>${safeAlt}</figcaption></figure><p><br></p>`;
 }

@@ -40,17 +40,43 @@ const ALLOWED_ATTR = [
   'class',
 ];
 
+let hookRegistered = false;
+
+function ensureDomPurifyHooks() {
+  if (hookRegistered || typeof window === 'undefined') return;
+  DOMPurify.addHook('afterSanitizeAttributes', (node) => {
+    if (node.tagName === 'A') {
+      const target = node.getAttribute('target');
+      if (target === '_blank') {
+        node.setAttribute('rel', 'noopener noreferrer');
+      } else if (target) {
+        node.removeAttribute('target');
+      }
+    }
+  });
+  hookRegistered = true;
+}
+
+function sanitizeServerFallback(html: string): string {
+  return html
+    .replace(/<(script|style|iframe|object|embed|svg|math|form|input|textarea|select|button)\b[\s\S]*?<\/\1>/gi, '')
+    .replace(/<(script|style|iframe|object|embed|svg|math|form|input|textarea|select|button)\b[^>]*\/?>/gi, '')
+    .replace(/\son[a-z]+\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+)/gi, '')
+    .replace(/\s(href|src)\s*=\s*(?:"\s*(?:javascript|vbscript|data:(?!image\/(?:png|jpeg|jpg|gif|webp|avif);base64,))[^"]*"|'\s*(?:javascript|vbscript|data:(?!image\/(?:png|jpeg|jpg|gif|webp|avif);base64,))[^']*')/gi, '');
+}
+
 export function sanitizeEditorHtml(html: string): string {
+  if (!html) return '';
   if (typeof window === 'undefined') {
-    return html;
+    return sanitizeServerFallback(html);
   }
-  const clean = DOMPurify.sanitize(html, {
+  ensureDomPurifyHooks();
+  return DOMPurify.sanitize(html, {
     ALLOWED_TAGS,
     ALLOWED_ATTR,
     ALLOWED_URI_REGEXP: /^(?:(?:https?|mailto):|data:image\/(?:png|jpeg|jpg|gif|webp|avif);base64,)/i,
     ALLOW_DATA_ATTR: false,
   });
-  return clean;
 }
 
 export function escapeHtmlText(text: string): string {

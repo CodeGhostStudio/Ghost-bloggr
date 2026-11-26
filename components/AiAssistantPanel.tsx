@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   ArrowRight,
   Bookmark,
@@ -99,6 +99,12 @@ export default function AiAssistantPanel({
   const [newPromptText, setNewPromptText] = useState('');
   const [newPromptTarget, setNewPromptTarget] = useState<PromptTarget>('selection');
   const [showNewPromptForm, setShowNewPromptForm] = useState(false);
+
+  useEffect(() => {
+    const syncPrompts = () => setPrompts(loadPromptLibrary());
+    window.addEventListener('ghost-bloggr-prompts-updated', syncPrompts);
+    return () => window.removeEventListener('ghost-bloggr-prompts-updated', syncPrompts);
+  }, []);
 
   const [chatHistory, setChatHistory] = useState<CoachMessage[]>([]);
   const [chatInput, setChatInput] = useState('');
@@ -210,6 +216,7 @@ export default function AiAssistantPanel({
     const next = [item, ...prompts];
     setPrompts(next);
     savePromptLibrary(next);
+    window.dispatchEvent(new Event('ghost-bloggr-prompts-updated'));
     setNewPromptName('');
     setNewPromptText('');
     setShowNewPromptForm(false);
@@ -219,6 +226,7 @@ export default function AiAssistantPanel({
     const next = prompts.filter((p) => p.id !== id);
     setPrompts(next);
     savePromptLibrary(next);
+    window.dispatchEvent(new Event('ghost-bloggr-prompts-updated'));
   };
 
   const handleSaveNewAgent = (e: React.FormEvent) => {
@@ -474,12 +482,12 @@ export default function AiAssistantPanel({
       </div>
 
       {errorMsg && (
-        <div className="mx-4 mt-3 p-3 rounded-xl bg-red-500/10 border border-red-500/25 text-xs text-red-400 flex items-start justify-between gap-2">
+        <div className="mx-4 mt-3 p-3 rounded-xl bg-red-500/10 border border-red-500/25 text-xs text-red-700 dark:text-red-400 flex items-start justify-between gap-2">
           <span>{errorMsg}</span>
           <button
             type="button"
             onClick={onOpenSettings}
-            className="underline shrink-0 font-medium text-[var(--gb-text)]"
+            className="underline shrink-0 font-medium text-[var(--gb-text)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gb-accent)] rounded"
           >
             Settings
           </button>
@@ -773,7 +781,7 @@ export default function AiAssistantPanel({
                       type="button"
                       onClick={() => handleDeletePrompt(item.id)}
                       aria-label={`Delete ${item.name}`}
-                      className="size-7 rounded-full flex items-center justify-center text-[var(--gb-muted)] hover:text-red-400 hover:bg-[var(--gb-hover)] transition-colors shrink-0"
+                      className="size-7 rounded-full flex items-center justify-center text-[var(--gb-muted)] hover:text-red-600 dark:hover:text-red-400 hover:bg-[var(--gb-hover)] transition-colors shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gb-accent)]"
                     >
                       <Trash2 className="size-3.5" />
                     </button>

@@ -23,6 +23,12 @@ const nextConfig: NextConfig = {
         port: '',
         pathname: '/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'cloud.ghostwriterz.shop',
+        port: '',
+        pathname: '/**',
+      },
     ],
   },
   output: process.env.VERCEL ? undefined : 'standalone',

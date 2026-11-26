@@ -216,8 +216,8 @@ export default function SettingsView({
             <div
               className={`p-3 rounded-xl border text-xs flex items-center gap-2 ${
                 testResult.ok
-                  ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
-                  : 'bg-red-500/10 border-red-500/30 text-red-400'
+                  ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-700 dark:text-emerald-400'
+                  : 'bg-red-500/10 border-red-500/30 text-red-700 dark:text-red-400'
               }`}
             >
               {testResult.ok ? (
@@ -391,7 +391,7 @@ export default function SettingsView({
                         type="button"
                         onClick={() => onDeleteAgent(agent.id)}
                         aria-label={`Delete ${agent.name}`}
-                        className="size-8 rounded-full flex items-center justify-center text-[var(--gb-muted)] hover:text-red-400 hover:bg-[var(--gb-hover)] transition-colors"
+                        className="size-8 rounded-full flex items-center justify-center text-[var(--gb-muted)] hover:text-red-600 dark:hover:text-red-400 hover:bg-[var(--gb-hover)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gb-accent)]"
                       >
                         <Trash2 className="size-4" />
                       </button>

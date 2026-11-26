@@ -76,7 +76,7 @@ export default function ReaderModal({
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-[var(--gb-elevated)] border border-[var(--gb-border)] text-[var(--gb-text)] hover:bg-[var(--gb-hover)] transition-colors"
             >
               {copiedMd ? (
-                <Check className="size-3.5 text-emerald-400" />
+                <Check className="size-3.5 text-emerald-600 dark:text-emerald-400" />
               ) : (
                 <Copy className="size-3.5 text-[var(--gb-muted)]" />
               )}
@@ -113,7 +113,7 @@ export default function ReaderModal({
               type="button"
               onClick={() => onDelete(post.id)}
               aria-label="Delete post"
-              className="size-9 rounded-full flex items-center justify-center text-[var(--gb-muted)] hover:text-red-400 hover:bg-[var(--gb-hover)] transition-colors"
+              className="size-9 rounded-full flex items-center justify-center text-[var(--gb-muted)] hover:text-red-600 dark:hover:text-red-400 hover:bg-[var(--gb-hover)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gb-accent)]"
             >
               <Trash2 className="size-4" />
             </button>
@@ -121,7 +121,7 @@ export default function ReaderModal({
               type="button"
               onClick={onClose}
               aria-label="Close reader view"
-              className="size-9 rounded-full flex items-center justify-center text-[var(--gb-muted)] hover:text-[var(--gb-text)] hover:bg-[var(--gb-hover)] transition-colors"
+              className="size-9 rounded-full flex items-center justify-center text-[var(--gb-muted)] hover:text-[var(--gb-text)] hover:bg-[var(--gb-hover)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gb-accent)]"
             >
               <X className="size-4" />
             </button>

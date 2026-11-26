@@ -94,7 +94,7 @@ export default function ImageUploadModal({
           <input
             ref={inputRef}
             type="file"
-            accept="image/*"
+            accept="image/png,image/jpeg,image/webp,image/gif,image/avif"
             className="hidden"
             onChange={(e) => {
               handleFile(e.target.files?.[0]);
@@ -146,7 +146,7 @@ export default function ImageUploadModal({
                 {processing ? 'Optimizing image...' : 'Drag and drop an image here'}
               </div>
               <p className="text-xs text-[var(--gb-muted)]">
-                or click to choose PNG, JPEG, WebP, or GIF (up to 8 MB)
+                or click to choose PNG, JPEG, WebP, GIF, or AVIF (up to 8 MB)
               </p>
             </div>
           ) : (
@@ -181,7 +181,7 @@ export default function ImageUploadModal({
                     setPreviewUrl(null);
                     setAltText('');
                   }}
-                  className="px-4 py-2 rounded-full text-xs font-medium bg-[var(--gb-elevated)] border border-[var(--gb-border)] text-[var(--gb-text)] hover:bg-[var(--gb-hover)]"
+                  className="px-4 py-2 rounded-full text-xs font-medium bg-[var(--gb-elevated)] border border-[var(--gb-border)] text-[var(--gb-text)] hover:bg-[var(--gb-hover)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gb-accent)]"
                 >
                   Choose Another
                 </button>
@@ -192,7 +192,7 @@ export default function ImageUploadModal({
                     onInsert(previewUrl, altText);
                     handleClose();
                   }}
-                  className="flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold bg-[var(--gb-accent)] text-[var(--gb-accent-fg)] hover:opacity-90"
+                  className="flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold bg-[var(--gb-accent)] text-[var(--gb-accent-fg)] hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gb-accent)]"
                 >
                   <ImagePlus className="size-3.5" />
                   <span>Insert Image</span>
@@ -202,7 +202,7 @@ export default function ImageUploadModal({
           )}
 
           {errorMsg && (
-            <p className="text-xs text-red-400">{errorMsg}</p>
+            <p className="text-xs text-red-600 dark:text-red-400">{errorMsg}</p>
           )}
         </div>
       </div>
